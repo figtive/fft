@@ -8,7 +8,7 @@ import numpy as np
 def main():
     full_image = Image.open('samples/bird.png').convert('L')
     img = np.array(full_image)
-    pltimage.imsave('ori.jpg', img)
+    pltimage.imsave('output/ori.jpg', img)
     plt.imshow(img, cmap='gray')
     plt.show()
 
@@ -31,7 +31,7 @@ def main():
 
     # result = Image.fromarray(abs(imgc)).convert('L')
     # result.save('comp.jpg')
-    pltimage.imsave('comp.jpg', abs(imgc), cmap='gray')
+    pltimage.imsave('output/comp.jpg', abs(imgc), cmap='gray')
 
 
 if __name__ == '__main__':
