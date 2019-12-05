@@ -3,36 +3,71 @@ import matplotlib.pyplot as plt
 from matplotlib.colors import LogNorm
 import matplotlib.image as pltimage
 import numpy as np
+from dft import dft2, idft2
+from fft import fft2, ifft2
+from time import perf_counter
 
 
-def main():
-    full_image = Image.open('samples/bird.png').convert('L')
+def compress(trans, itrans, source, compression, desc):
+    fig, axs = plt.subplots(2, 2)
+    full_image = Image.open(source).convert('L')
     img = np.array(full_image)
-    pltimage.imsave('ori.jpg', img)
-    plt.imshow(img, cmap='gray')
-    plt.show()
+    img = crop_power(img)
+    print(f"Cropping image to {img.shape[0]}x{img.shape[1]}")
 
-    imgf = np.fft.fft2(img)
+    pltimage.imsave('original.jpg', img, cmap='gray')
+    axs[0, 0].axis('off')
+    axs[0, 0].imshow(img, cmap='gray')
 
-    plt.imshow(np.abs(imgf), norm=LogNorm(vmin=5))
-    plt.colorbar()
-    plt.show()
+    start = perf_counter()
+    imgf = trans(img)
+    stop = perf_counter()
+    print(f"Transform time: {stop - start} s")
 
-    imgf.real[abs(imgf.real) < np.max(abs(imgf.real)) * .005] = 0
-    imgf.imag[abs(imgf.imag) < np.max(abs(imgf.imag)) * .005] = 0
+    axs[0, 1].set_title(f"Time: {stop - start:.5f}s")
+    axs[0, 1].axis('off')
+    im1 = axs[0, 1].imshow(np.abs(np.fft.fftshift(imgf)), norm=LogNorm(vmin=5))
+    fig.colorbar(im1, ax=axs[0, 1])
 
-    plt.imshow(np.abs(imgf), norm=LogNorm(vmin=5))
-    plt.colorbar()
-    plt.show()
+    print(f"Compression: {compression * 100}%")
+    imgf[abs(imgf) < np.percentile(abs(imgf), compression * 100)] = 0
 
-    imgc = np.fft.ifft2(imgf)
-    plt.imshow(abs(imgc), cmap='gray')
+    axs[1, 1].axis('off')
+    im2 = axs[1, 1].imshow(np.abs(np.fft.fftshift(imgf)), norm=LogNorm(vmin=5))
+    fig.colorbar(im2, ax=axs[1, 1])
+
+    start = perf_counter()
+    imgc = itrans(imgf)
+    stop = perf_counter()
+    print(f"Transform time: {stop - start} s")
+
+    axs[1, 1].set_title(f"Time: {stop - start:.5f}s")
+    axs[1, 0].axis('off')
+    axs[1, 0].imshow(abs(imgc), cmap='gray')
+
+    fig.suptitle(desc, fontsize=16)
     plt.show()
 
     # result = Image.fromarray(abs(imgc)).convert('L')
     # result.save('comp.jpg')
-    pltimage.imsave('comp.jpg', abs(imgc), cmap='gray')
+    pltimage.imsave('compressed.jpg', abs(imgc), cmap='gray')
+
+
+def crop_power(img):
+    lower_x = lower_power(img.shape[0]) // 2
+    lower_y = lower_power(img.shape[1]) // 2
+    return img[img.shape[0] // 2 - lower_x:img.shape[0] // 2 + lower_x,
+           img.shape[1] // 2 - lower_y:img.shape[1] // 2 + lower_y]
+
+
+def lower_power(number):
+    return 1 << (number).bit_length() - 1
 
 
 if __name__ == '__main__':
-    main()
+    print("\n------ Numpy FFT Compression ------")
+    compress(np.fft.fft2, np.fft.ifft2, 'samples/lena_color_512.tif', .95, "Numpy FFT")
+    print("\n------ FFT Compression ------")
+    compress(fft2, ifft2, 'samples/lena_color_512.tif', .95, "FFT")
+    print("\n------ DFT Compression ------")
+    compress(dft2, idft2, 'samples/lena_color_512.tif', .99, "DFT")

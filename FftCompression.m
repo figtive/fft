@@ -14,10 +14,10 @@ function [ a ] = FFTCompression()
     figure(3), imshow(fourierCoefficient);
 
     threshold = 0.001 * max(max(abs(imageFft)));
-    indisces = abs(imageFft) > threshold;
-    imageCompressed = imageFft .* indisces;
+    indices = abs(imageFft) > threshold;
+    imageCompressed = imageFft .* indices;
     imageCompressedConverted = uint8(real(ifft2(imageCompressed)));
-    count = nx * ny - sum(sum(indisces));
+    count = nx * ny - sum(sum(indices));
     percentage = 100 - count / (nx * ny) * 100;
     figure(4), imshow(imageCompressedConverted);
     title(num2str(percentage));
