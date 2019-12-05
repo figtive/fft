@@ -17,7 +17,7 @@ def ifft2(matrix):
         image[row, :] = fft([c.conjugate() / (len(matrix[row, :])) for c in matrix[row, :]])
     for col in range(image.shape[1]):
         image[:, col] = fft([c.conjugate() / (len(image[:, col])) for c in image[:, col]])
-    return image
+    return np.flip(image, 0)
 
 
 def fft(vector, N=None, w=None):
