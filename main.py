@@ -67,7 +67,7 @@ def main():
     plt.xlabel('image width and height (pixel)')
     plt.ylabel('time (s)')
     plt.yscale('log')
-    plt.savefig(f'output/summary.png', bbox_inches='tight')
+    plt.savefig(f'output/summary-log.png', bbox_inches='tight')
     plt.show(bbox_inches='tight')
 
 
