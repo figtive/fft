@@ -3,6 +3,7 @@ from skimage.transform import resize
 import matplotlib.image as pltimage
 import matplotlib.pyplot as plt
 from PIL import Image
+from scipy import interpolate
 
 from compress import compress
 from dft import dft2, idft2
@@ -10,16 +11,16 @@ from fft import fft2, ifft2
 
 compression = .95
 source = 'samples/lena_color_512.tif'
-resolutions = (2, 4, 8)
+resolutions = [2, 4, 8, 16, 32, 64, 128, 256, 512, 1024]
 
+np_times = []
+fft_times = []
+dft_times = []
 
 def main():
     print(f"\n====== Generating images for {source} with resolutions {resolutions}")
     generate_images(source, resolutions)
 
-    np_times = []
-    fft_times = []
-    dft_times = []
     for res in resolutions:
         print(f"\n====== Compressing for size {res}x{res}")
         print("--- Numpy FFT Compression... ", end='')
@@ -36,28 +37,37 @@ def main():
         print(f"Done! {pre + pos}s")
 
     plt.show()
-    plt.plot(resolutions, np_times)
-    plt.plot(resolutions, fft_times)
-    plt.plot(resolutions, dft_times)
-    plt.title("Compression Time Summary")
+
+    inp = interpolate.splrep(resolutions, np_times, s=0)
+    ifft = interpolate.splrep(resolutions, fft_times, s=0)
+    idft = interpolate.splrep(resolutions, dft_times, s=0)
+    res = np.arange(0, 512, 1)
+    np_inter = interpolate.splev(res, inp, der=0)
+    fft_inter = interpolate.splev(res, ifft, der=0)
+    dft_inter = interpolate.splev(res, idft, der=0)
+
+    plt.plot(res, np_inter, "-b", res, fft_inter, "-g", res, dft_inter, "-r")
     plt.legend(['Numpy FFT', 'Cooley-Tukey FFT', 'Naive DFT'], loc='upper left')
-    plt.xticks(resolutions)
+    plt.plot(resolutions[:-1], np_times[:-1], "bx", resolutions[:-1], fft_times[:-1], "gx", resolutions[:-1],
+             dft_times[:-1], "rx")
+
+    plt.title("Compression Time Summary")
     plt.xlabel('image width and height (pixel)')
     plt.ylabel('time (s)')
     plt.savefig(f'output/summary.png', bbox_inches='tight')
     plt.show(bbox_inches='tight')
 
-    plt.plot(resolutions, np_times)
-    plt.plot(resolutions, fft_times)
-    plt.plot(resolutions, dft_times)
+    plt.plot(res, np_inter, "-b", res, fft_inter, "-g", res, dft_inter, "-r")
+    plt.legend(['Numpy FFT', 'Cooley-Tukey FFT', 'Naive DFT'], loc='upper left')
+    plt.plot(resolutions[:-1], np_times[:-1], "bx", resolutions[:-1], fft_times[:-1], "gx", resolutions[:-1],
+             dft_times[:-1], "rx")
+
     plt.title("Compression Time Summary")
     plt.legend(['Numpy FFT', 'Cooley-Tukey FFT', 'Naive DFT'], loc='upper left')
-    plt.xticks(resolutions)
     plt.xlabel('image width and height (pixel)')
     plt.ylabel('time (s)')
-    plt.xscale('log')
     plt.yscale('log')
-    plt.savefig(f'output/summary-log.png', bbox_inches='tight')
+    plt.savefig(f'output/summary.png', bbox_inches='tight')
     plt.show(bbox_inches='tight')
 
 
