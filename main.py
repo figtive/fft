@@ -52,7 +52,7 @@ def main():
         dft_times.append((pre + pos))
         print(f"Done! {pre + pos}s")
 
-    plt.show()
+    plt.clf()
     inp = interpolate.splrep(resolutions, np_times, s=0)
     ifft = interpolate.splrep(resolutions, fft_times, s=0)
     ifftp = interpolate.splrep(resolutions, fftp_times, s=0)
@@ -65,7 +65,8 @@ def main():
     ffth_inter = interpolate.splev(res, iffth, der=0)
     dft_inter = interpolate.splev(res, idft, der=0)
 
-    plt.plot(res, np_inter, "-b", res, fft_inter, "-g", res, fftp_inter, "-c", res, ffth_inter, "-m", res, dft_inter, "-r")
+    plt.plot(res, np_inter, "-b", res, fft_inter, "-g", res, fftp_inter, "-c", res, ffth_inter, "-m", res, dft_inter,
+             "-r")
     plt.legend(['NumPy FFT', 'Cooley-Tukey FFT', 'Parallel FFT', 'Hybrid FFT', 'Naive DFT'], loc='upper left')
     plt.plot(resolutions[:-1], np_times[:-1], "bx", resolutions[:-1], fft_times[:-1], "gx", resolutions[:-1],
              fftp_times[:-1], "cx", resolutions[:-1], ffth_times[:-1], "mx", resolutions[:-1], dft_times[:-1], "rx")
@@ -74,9 +75,10 @@ def main():
     plt.xlabel('image width and height (pixel)')
     plt.ylabel('time (s)')
     plt.savefig(f'output/summary.png', bbox_inches='tight', dpi=300)
-    plt.show(bbox_inches='tight')
+    plt.clf()
 
-    plt.plot(res, np_inter, "-b", res, fft_inter, "-g", res, fftp_inter, "-c", res, ffth_inter, "-m", res, dft_inter, "-r")
+    plt.plot(res, np_inter, "-b", res, fft_inter, "-g", res, fftp_inter, "-c", res, ffth_inter, "-m", res, dft_inter,
+             "-r")
     plt.legend(['NumPy FFT', 'Cooley-Tukey FFT', 'Parallel FFT', 'Hybrid FFT', 'Naive DFT'], loc='upper left')
     plt.plot(resolutions[:-1], np_times[:-1], "bx", resolutions[:-1], fft_times[:-1], "gx", resolutions[:-1],
              fftp_times[:-1], "cx", resolutions[:-1], ffth_times[:-1], "mx", resolutions[:-1], dft_times[:-1], "rx")
@@ -86,7 +88,7 @@ def main():
     plt.ylabel('time (s)')
     plt.yscale('log')
     plt.savefig(f'output/summary-log.png', bbox_inches='tight', dpi=300)
-    plt.show(bbox_inches='tight')
+    plt.clf()
 
 
 def generate_images(source, resolutions):

@@ -49,7 +49,8 @@ def compress(trans, itrans, source, compression, desc):
     axs[1, 1].yaxis.set_major_locator(plt.NullLocator())
     fig.suptitle(desc)
     plt.savefig(f'output/summary-{desc}.png', bbox_inches='tight', dpi=300)
-    plt.show(bbox_inches='tight')
+    plt.clf()
+    plt.close()
 
     # result = Image.fromarray(abs(imgc)).convert('L')
     # result.save('comp.jpg')
