@@ -1,7 +1,10 @@
 import math
 import numpy as np
-from multiprocessing import Manager, Process
-
+from multiprocessing.pool import ThreadPool
+from multiprocessing import Manager, Process, Pool
+"""
+NOT USED
+"""
 
 def fftp2(matrix):
     image = np.zeros(matrix.shape, dtype=complex)
@@ -20,8 +23,7 @@ def ifftp2(matrix):
         image[:, col] = fftp([c.conjugate() / (len(image[:, col])) for c in image[:, col]])
     return np.flip(image, 0)
 
-
-def fftp(vector, return_vector=None, N=None, w=None):
+def fftp(vector, N=None, w=None):
     if N == 1:
         return vector
     else:
@@ -29,24 +31,20 @@ def fftp(vector, return_vector=None, N=None, w=None):
             N = len(vector)
         if w is None:
             w = complex(math.cos(math.tau / N), math.sin(math.tau / N))
+        # if pool is None:
+        #     print('New pool')
+        #     pool = Pool(processes=16)
         vector = padding(vector, nearest_power(N))
-
-        manager = Manager()
-        fourier_even = manager.list([0] * N)
-        fourier_odd = manager.list([0] * N)
-        fourier_even_process = Process(target=fftp, args=(vector[0::2], fourier_even, nearest_power(N) // 2, w ** 2))
-        fourier_odd_process = Process(target=fftp, args=(vector[1::2], fourier_odd, nearest_power(N) // 2, w ** 2))
-        fourier_even_process.start()
-        fourier_odd_process.start()
-        fourier_even_process.join()
-        fourier_odd_process.join()
+        with ThreadPool(2) as pool:
+            result = pool.starmap(fftp, [(vector[0::2], nearest_power(N) // 2, w ** 2),
+                                         (vector[1::2], nearest_power(N) // 2, w ** 2)])
         x = 1
-        return_vector = [0] * N if return_vector is None else return_vector
+        fourier = [0] * N
         for i in range(N // 2):
-            return_vector[i] = fourier_even[i] + x * fourier_odd[i]
-            return_vector[i + N // 2] = fourier_even[i] - x * fourier_odd[i]
+            fourier[i] = result[0][i] + x * result[1][i]
+            fourier[i + N // 2] = result[0][i] - x * result[1][i]
             x *= w
-        return return_vector
+        return fourier
 
 
 def nearest_power(number):
