@@ -7,11 +7,12 @@ from scipy import interpolate
 
 from compress import compress
 from dft import dft2, idft2
-from fft import fft2, ifft2, fftp2, ifftp2, ffth2, iffth2
+from fft import fft2, ifft2, ffth2, iffth2
+from fftp import fftp2, ifftp2
 
 compression = .95
 source = 'samples/lena_color_512.tif'
-resolutions = [2, 4, 8, 16, 32]
+resolutions = [2, 4, 8, 16, 32, 64, 128, 256, 512, 1024]
 
 np_times = []
 fft_times = []
@@ -88,6 +89,29 @@ def main():
     plt.ylabel('time (s)')
     plt.yscale('log')
     plt.savefig(f'output/summary-log.png', bbox_inches='tight', dpi=300)
+    plt.clf()
+
+    plt.plot(res, fft_inter, "-g", res, fftp_inter, "-c", res, ffth_inter, "-m")
+    plt.legend(['Cooley-Tukey FFT', 'Parallel FFT', 'Hybrid FFT'], loc='upper left')
+    plt.plot(resolutions[:-1], fft_times[:-1], "gx", resolutions[:-1],
+             fftp_times[:-1], "cx", resolutions[:-1], ffth_times[:-1], "mx")
+
+    plt.title("Compression Time Summary")
+    plt.xlabel('image width and height (pixel)')
+    plt.ylabel('time (s)')
+    plt.savefig(f'output/summary-focus.png', bbox_inches='tight', dpi=300)
+    plt.clf()
+
+    plt.plot(res, fft_inter, "-g", res, fftp_inter, "-c", res, ffth_inter, "-m")
+    plt.legend(['Cooley-Tukey FFT', 'Parallel FFT', 'Hybrid FFT'], loc='upper left')
+    plt.plot(resolutions[:-1], fft_times[:-1], "gx", resolutions[:-1],
+             fftp_times[:-1], "cx", resolutions[:-1], ffth_times[:-1], "mx")
+
+    plt.title("Compression Time Summary")
+    plt.xlabel('image width and height (pixel)')
+    plt.ylabel('time (s)')
+    plt.yscale('log')
+    plt.savefig(f'output/summary-focus-log.png', bbox_inches='tight', dpi=300)
     plt.clf()
 
 

@@ -1,27 +1,39 @@
 import math
 import numpy as np
-from multiprocessing.pool import ThreadPool
-from multiprocessing import Manager, Process, Pool
+from multiprocessing.pool import ThreadPool, Pool
+
 """
 NOT USED
 """
 
+
+# class NoDaemonProcess(Process):
+#     def _get_daemon(self):
+#         return False
+#
+#     def _set_daemon(self, value):
+#         pass
+#
+#     daemon = property(_get_daemon, _set_daemon)
+#
+#
+# class Pool(PoolParent):
+#     Process = NoDaemonProcess
+
+
 def fftp2(matrix):
-    image = np.zeros(matrix.shape, dtype=complex)
-    for row in range(image.shape[0]):
-        image[row, :] = fftp(matrix[row, :])
-    for col in range(image.shape[1]):
-        image[:, col] = fftp(image[:, col])
+    with Pool(20) as pool:
+        image = np.array(pool.map(fftp, matrix))
+        image = np.array(pool.map(fftp, image.T)).T
     return image
 
 
 def ifftp2(matrix):
-    image = np.zeros(matrix.shape, dtype=complex)
-    for row in range(image.shape[0]):
-        image[row, :] = fftp([c.conjugate() / (len(matrix[row, :])) for c in matrix[row, :]])
-    for col in range(image.shape[1]):
-        image[:, col] = fftp([c.conjugate() / (len(image[:, col])) for c in image[:, col]])
+    with Pool(20) as pool:
+        image = np.array(pool.map(fftp, [c.conjugate() / (len(matrix)) for c in matrix]))
+        image = np.array(pool.map(fftp, [c.conjugate() / (len(image.T)) for c in image.T])).T
     return np.flip(image, 0)
+
 
 def fftp(vector, N=None, w=None):
     if N == 1:
@@ -31,9 +43,6 @@ def fftp(vector, N=None, w=None):
             N = len(vector)
         if w is None:
             w = complex(math.cos(math.tau / N), math.sin(math.tau / N))
-        # if pool is None:
-        #     print('New pool')
-        #     pool = Pool(processes=16)
         vector = padding(vector, nearest_power(N))
         with ThreadPool(2) as pool:
             result = pool.starmap(fftp, [(vector[0::2], nearest_power(N) // 2, w ** 2),

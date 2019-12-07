@@ -21,20 +21,6 @@ def ifft2(matrix):
     return np.flip(image, 0)
 
 
-def fftp2(matrix):
-    with Pool(20) as pool:
-        image = np.array(pool.map(fft, matrix))
-        image = np.array(pool.map(fft, image.T)).T
-    return image
-
-
-def ifftp2(matrix):
-    with Pool(20) as pool:
-        image = np.array(pool.map(fft, [c.conjugate() / (len(matrix)) for c in matrix]))
-        image = np.array(pool.map(fft, [c.conjugate() / (len(image.T)) for c in image.T])).T
-    return np.flip(image, 0)
-
-
 def ffth2(matrix):
     image = np.zeros(matrix.shape, dtype=complex)
     for row in range(image.shape[0]):
