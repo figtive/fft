@@ -1,5 +1,6 @@
 import math
 import numpy as np
+from multiprocessing import Manager, Process
 
 
 def fftp2(matrix):
@@ -20,7 +21,7 @@ def ifftp2(matrix):
     return np.flip(image, 0)
 
 
-def fftp(vector, N=None, w=None):
+def fftp(vector, return_vector=None, N=None, w=None):
     if N == 1:
         return vector
     else:
@@ -29,15 +30,23 @@ def fftp(vector, N=None, w=None):
         if w is None:
             w = complex(math.cos(math.tau / N), math.sin(math.tau / N))
         vector = padding(vector, nearest_power(N))
-        fourier_even = fftp(vector[0::2], nearest_power(N) // 2, w ** 2)
-        fourier_odd = fftp(vector[1::2], nearest_power(N) // 2, w ** 2)
-        fourier = [0] * N
+
+        manager = Manager()
+        fourier_even = manager.list([0] * N)
+        fourier_odd = manager.list([0] * N)
+        fourier_even_process = Process(target=fftp, args=(vector[0::2], fourier_even, nearest_power(N) // 2, w ** 2))
+        fourier_odd_process = Process(target=fftp, args=(vector[1::2], fourier_odd, nearest_power(N) // 2, w ** 2))
+        fourier_even_process.start()
+        fourier_odd_process.start()
+        fourier_even_process.join()
+        fourier_odd_process.join()
         x = 1
+        return_vector = [0] * N if return_vector is None else return_vector
         for i in range(N // 2):
-            fourier[i] = fourier_even[i] + x * fourier_odd[i]
-            fourier[i + N // 2] = fourier_even[i] - x * fourier_odd[i]
+            return_vector[i] = fourier_even[i] + x * fourier_odd[i]
+            return_vector[i + N // 2] = fourier_even[i] - x * fourier_odd[i]
             x *= w
-        return fourier
+        return return_vector
 
 
 def nearest_power(number):
@@ -46,4 +55,3 @@ def nearest_power(number):
 
 def padding(vector, pad):
     return np.append(vector, np.zeros(pad - len(vector)))
-
