@@ -7,8 +7,7 @@ from scipy import interpolate
 
 from compress import compress
 from dft import dft2, idft2
-from fft import fft2, ifft2, ffth2, iffth2
-from fftp import fftp2, ifftp2
+from fft import fft2, ifft2, fftp2, ifftp2, ffth2, iffth2
 
 compression = .95
 source = 'samples/lena_color_512.tif'
